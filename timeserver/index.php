@@ -12,6 +12,9 @@ if(empty($request[0])) {
 	case 'getTime':
 		getTime($request);
 		break;
+	case 'timezoneProxy':
+		callGoogleMaps($request);
+		break;
 	case 'getTimeZone':
 		getTimeZone($request);
 		break;
@@ -28,6 +31,28 @@ if(empty($request[0])) {
 
 function Show404Error() {
 	echo 'Bad request';
+}
+
+/**
+ * So we don't have to use https. e.g.:
+ * http://yourhost/timezoneProxy/json?location=40.05,-80.1&timestamp=1234
+*/
+function callGoogleMaps($args) {
+	$args = implode('/', $args);
+	$url = "https://maps.googleapis.com/maps/api/timezone/" . $args;
+	$curl = curl_init();
+    curl_setopt($curl, CURLOPT_URL, $url);
+    curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($curl, CURLOPT_TIMEOUT, 10);
+    if (ini_get('open_basedir') == '' && ini_get('safe_mode' == 'Off')) curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);
+    // execute
+    $response = curl_exec($curl);
+    // fetch errors
+    $errorNumber = curl_errno($curl);
+    $errorMessage = curl_error($curl);
+    // close curl
+    curl_close($curl);
+	echo $response;
 }
 
 function getTime($args) {
